@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layer8 - Example</title>
+    <script src="lib.js"></script>
+</head>
+<body>
+    <h1>Layer8 - Example</h1>
+    <p>This is an example page that uses the Layer8 anonymous proxy to fetch data from the Cat Fact API with the <code>window.layer8.fetch</code> function.</p>
+    <h2>Default fetch:</h2>
+    <div id="fetchOutput"></div>
+    <br>
+    <h2>Layer8 fetch:</h2>
+    <div id="layer8Output"></div>
+    <br>
+    <button onclick="fetchCatFact()">Fetch Cat Fact</button>
+    
+    <script>
+        const fetchCatFact = async () => {
+            Promise.all([
+                window.fetch('https://catfact.ninja/fact'),
+                window.layer8.fetch('https://catfact.ninja/fact')
+            ])
+            .then(responses => Promise.all(responses.map(response => response.json())))
+            .then(data => {
+                document.getElementById('fetchOutput').innerHTML = data[0].fact;
+                document.getElementById('layer8Output').innerHTML = data[1].fact;
+            });
+        };
+    </script>
+</body>
+</html>
