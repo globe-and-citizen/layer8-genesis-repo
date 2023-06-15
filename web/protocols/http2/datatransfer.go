@@ -4,13 +4,14 @@ import (
 	"context"
 	"time"
 
+	"github.com/globe-and-citizen/layer8-genesis-repo/api"
 	pb "github.com/globe-and-citizen/layer8-genesis-repo/api/grpc"
 	"github.com/globe-and-citizen/layer8-genesis-repo/pkg"
 )
 
 // transfer transfers data between the client and the server
 // and returns the response
-func (c *connection) transfer(key string, nonce, data []byte) ([]byte, error) {
+func (c *Client) transfer(key string, nonce, data []byte) (*api.Response, error) {
 	client := pb.NewDataTransferServiceClient(c.conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -35,5 +36,9 @@ func (c *connection) transfer(key string, nonce, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return decData, nil
+	res, err := api.FromJSONResponse(decData)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

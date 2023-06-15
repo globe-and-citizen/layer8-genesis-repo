@@ -20,19 +20,25 @@
     
     <script>
         const fetchCatFact = async () => {
+            var start = new Date().getTime();
             window.fetch('https://catfact.ninja/fact')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('fetchOutput').innerHTML = data.fact;
+                    var end = new Date().getTime();
+                    console.log("Fetch time:", end - start, "ms");
                 })
                 .catch(error => {
                     console.log("Fetch error:", error);
                 });
 
+            var start = new Date().getTime();
             window.layer8.fetch('https://catfact.ninja/fact')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('layer8Output').innerHTML = data.fact;
+                    var end = new Date().getTime();
+                    console.log("Layer8 time:", end - start, "ms");
                 })
                 .catch(error => {
                     console.log("Layer8 error:", error)

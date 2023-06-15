@@ -4,12 +4,13 @@ import (
 	"syscall/js"
 
 	"github.com/globe-and-citizen/layer8-genesis-repo/api"
-	"github.com/globe-and-citizen/layer8-genesis-repo/web/protocols/http2"
+	"github.com/globe-and-citizen/layer8-genesis-repo/web/protocols/http1"
 )
 
 var (
 	ServerHost string
-	ServerPort string
+	RESTPort   string
+	GRPCPort   string
 )
 
 func fetch(this js.Value, args []js.Value) interface{} {
@@ -43,9 +44,9 @@ func fetch(this js.Value, args []js.Value) interface{} {
 				return nil
 			}))
 
-			// make the request using the http2 client
+			// make the request using the http1 client
 			req := api.NewRequest(method, url, headersMap, []byte(body))
-			res := http2.NewClient(ServerHost, ServerPort).Do(req)
+			res := http1.NewClient("http", ServerHost, RESTPort).Do(req)
 			if res.Status < 300 {
 				args[0].Invoke(js.Global().Get("Response").New(string(res.Body), js.ValueOf(map[string]interface{}{
 					"status":     res.Status,

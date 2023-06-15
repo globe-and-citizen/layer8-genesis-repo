@@ -2,6 +2,7 @@ package http2
 
 import (
 	"context"
+	"encoding/base64"
 	"math/big"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 
 // exchangeKey exchanges a public key with the server
 // and returns the client's symmetric key and nonce
-func (c *connection) exchangeKey() (string, []byte, error) {
+func (c *Client) exchangeKey() (string, []byte, error) {
 	client := pb.NewKeyExchangeClient(c.conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -24,18 +25,29 @@ func (c *connection) exchangeKey() (string, []byte, error) {
 
 	// exchange key
 	resp, err := client.ExchangeKey(ctx, &pb.KeyExchangeRequest{
-		PublicKeyX: pair.Pub.X.Int64(),
-		PublicKeyY: pair.Pub.Y.Int64(),
+		PublicKeyX: pair.Pub.X.String(),
+		PublicKeyY: pair.Pub.Y.String(),
 	})
 	if err != nil {
 		return "", nil, err
 	}
 
 	// generate symmetric key
-	symm, err := pkg.GenerateSharedSecret(
-		pair.Pri.D, big.NewInt(resp.PublicKeyX), big.NewInt(resp.PublicKeyY))
+	nonce, err := base64.StdEncoding.DecodeString(resp.Nonce)
 	if err != nil {
 		return "", nil, err
 	}
-	return symm, resp.Nonce, nil
+	pubX := big.NewInt(0)
+	if _, ok := pubX.SetString(resp.PublicKeyX, 10); !ok {
+		return "", nil, err
+	}
+	pubY := big.NewInt(0)
+	if _, ok := pubY.SetString(resp.PublicKeyY, 10); !ok {
+		return "", nil, err
+	}
+	symm, err := pkg.GenerateSharedSecret(pair.Pri.D, pubX, pubY)
+	if err != nil {
+		return "", nil, err
+	}
+	return symm, nonce, nil
 }

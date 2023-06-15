@@ -2,6 +2,7 @@ package grpc_server
 
 import (
 	"context"
+	"encoding/base64"
 	"log"
 	"math/big"
 
@@ -11,8 +12,15 @@ import (
 )
 
 // pubs stores the public keys of the clients
+// TODO: move this to a database
 var pubs map[string]struct {
 	X, Y *big.Int
+}
+
+func init() {
+	pubs = make(map[string]struct {
+		X, Y *big.Int
+	})
 }
 
 type KeyExchangeServer struct {
@@ -31,16 +39,28 @@ func (s *KeyExchangeServer) ExchangeKey(ctx context.Context, in *pb.KeyExchangeR
 	}
 
 	// store public key
-	pubs[string(nonce)] = struct {
+	pubX := big.NewInt(0)
+	if _, ok := pubX.SetString(in.PublicKeyX, 10); !ok {
+		log.Printf("Error parsing public key X: %v", err)
+		return nil, err
+	}
+	pubY := big.NewInt(0)
+	if _, ok := pubY.SetString(in.PublicKeyY, 10); !ok {
+		log.Printf("Error parsing public key Y: %v", err)
+		return nil, err
+	}
+	b64nonce := base64.StdEncoding.EncodeToString(nonce)
+	pubs[b64nonce] = struct {
 		X, Y *big.Int
 	}{
-		X: big.NewInt(in.PublicKeyX),
-		Y: big.NewInt(in.PublicKeyY),
+		X: pubX,
+		Y: pubY,
 	}
 
+	// convert server's public key to string
 	return &pb.KeyExchangeResponse{
-		PublicKeyX: s.conf.KeyPair.Pub.X.Int64(),
-		PublicKeyY: s.conf.KeyPair.Pub.Y.Int64(),
-		Nonce:      nonce,
+		PublicKeyX: s.conf.KeyPair.Pub.X.String(),
+		PublicKeyY: s.conf.KeyPair.Pub.Y.String(),
+		Nonce:      b64nonce,
 	}, nil
 }

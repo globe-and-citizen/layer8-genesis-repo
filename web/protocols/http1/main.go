@@ -1,46 +1,29 @@
-package http2
+package http1
 
 import (
 	"fmt"
 
 	"github.com/globe-and-citizen/layer8-genesis-repo/api"
 	"github.com/globe-and-citizen/layer8-genesis-repo/web/protocols"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
-	host string
-	port string
-	conn *grpc.ClientConn
+	baseURL string
 }
 
-// NewClient creates a new instance of the http2.Client
+// NewClient creates a new instance of the http1.Client
 //
 // Arguments:
 //
-//	host (string): The host of the remote layer8 gRPC server
-//	port (string): The port of the remote layer8 gRPC server
-func NewClient(host, port string) protocols.ClientImpl {
+//	host (string): The host of the remote layer8 REST server
+//	port (string): The port of the remote layer8 REST server
+func NewClient(protocol, host, port string) protocols.ClientImpl {
 	return &Client{
-		host: host,
-		port: port,
+		baseURL: fmt.Sprintf("%s://%s:%s", protocol, host, port),
 	}
 }
 
 func (c *Client) Do(req *api.Request) *api.Response {
-	// connect to the server
-	conn, err := grpc.Dial(
-		fmt.Sprintf("%s:%s", c.host, c.port), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return &api.Response{
-			Status:     500,
-			StatusText: err.Error(),
-		}
-	}
-	defer conn.Close()
-	c.conn = conn
-
 	// exchange key
 	key, nonce, err := c.exchangeKey()
 	if err != nil {
