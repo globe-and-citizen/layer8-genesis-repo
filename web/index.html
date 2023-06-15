@@ -20,15 +20,23 @@
     
     <script>
         const fetchCatFact = async () => {
-            Promise.all([
-                window.fetch('https://catfact.ninja/fact'),
-                window.layer8.fetch('https://catfact.ninja/fact')
-            ])
-            .then(responses => Promise.all(responses.map(response => response.json())))
-            .then(data => {
-                document.getElementById('fetchOutput').innerHTML = data[0].fact;
-                document.getElementById('layer8Output').innerHTML = data[1].fact;
-            });
+            window.fetch('https://catfact.ninja/fact')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('fetchOutput').innerHTML = data.fact;
+                })
+                .catch(error => {
+                    console.log("Fetch error:", error);
+                });
+
+            window.layer8.fetch('https://catfact.ninja/fact')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('layer8Output').innerHTML = data.fact;
+                })
+                .catch(error => {
+                    console.log("Layer8 error:", error)
+                });
         };
     </script>
 </body>

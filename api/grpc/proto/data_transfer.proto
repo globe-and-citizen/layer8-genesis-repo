@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package data_transfer;
+
+option go_package = "github.com/globe-and-citizen/layer8-genesis-repo/grpc";
+
+message DataTransferRequest {
+    bytes nonce = 1;
+    bytes data   = 2;
+}
+
+message DataTransferResponse {
+    bytes data = 2;
+}
+
+service DataTransferService {
+    rpc Transfer (DataTransferRequest) returns (DataTransferResponse);
+}

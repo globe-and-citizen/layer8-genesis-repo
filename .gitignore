@@ -21,3 +21,5 @@
 go.work
 
 wasm/
+.env
+bin/

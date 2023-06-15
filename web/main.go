@@ -1,10 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
 	"syscall/js"
+
+	"github.com/globe-and-citizen/layer8-genesis-repo/api"
+	"github.com/globe-and-citizen/layer8-genesis-repo/web/protocols/http2"
+)
+
+var (
+	ServerHost string
+	ServerPort string
 )
 
 func fetch(this js.Value, args []js.Value) interface{} {
@@ -23,7 +28,7 @@ func fetch(this js.Value, args []js.Value) interface{} {
 	}
 	headers := options.Get("headers")
 	body := options.Get("body").String()
-	// setting the body to empty string if it's undefined
+	// setting the body to an empty string if it's undefined
 	if body == "<undefined>" {
 		body = ""
 	}
@@ -31,49 +36,31 @@ func fetch(this js.Value, args []js.Value) interface{} {
 	promise := js.Global().Get("Promise").New(js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// to avoid deadlock with the main thread, we need to run this in a goroutine
 		go func() {
-			var (
-				req *http.Request
-				err error
-			)
-			if body != "" {
-				req, err = http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
-			} else {
-				req, err = http.NewRequest(method, url, nil)
-			}
-			if err != nil {
-				args[1].Invoke(err.Error())
-				return
-			}
 			// add headers
+			headersMap := make(map[string]string)
 			js.Global().Get("Object").Call("keys", headers).Call("forEach", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-				req.Header.Add(args[1].String(), args[0].String())
+				headersMap[args[0].String()] = args[1].String()
 				return nil
 			}))
 
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				args[1].Invoke(err.Error())
-				return
+			// make the request using the http2 client
+			req := api.NewRequest(method, url, headersMap, []byte(body))
+			res := http2.NewClient(ServerHost, ServerPort).Do(req)
+			if res.Status < 300 {
+				args[0].Invoke(js.Global().Get("Response").New(string(res.Body), js.ValueOf(map[string]interface{}{
+					"status":     res.Status,
+					"statusText": res.StatusText,
+				})))
+			} else {
+				args[1].Invoke(js.Global().Get("Error").New(res.StatusText))
 			}
-			defer resp.Body.Close()
-			respBody, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				args[1].Invoke(err.Error())
-				return
-			}
-			
-			// return the response
-			args[0].Invoke(js.Global().Get("Response").New(string(respBody), js.ValueOf(map[string]interface{}{
-				"status": resp.StatusCode,
-				"statusText": resp.Status,
-			})))
 		}()
 		return nil
 	}), js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// for rejection, we just return the error message
 		return args[0].String()
 	}))
-	
+
 	return promise
 }
 

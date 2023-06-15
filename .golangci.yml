@@ -1,0 +1,22 @@
+issues:
+  exclude:
+    - "syscall/js"
+  enable:
+    - deadcode
+    - errcheck
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - ineffassign
+    - misspell
+    - nakedret
+    - prealloc
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unconvert
+    - unused
+    - varcheck
+    - lll
