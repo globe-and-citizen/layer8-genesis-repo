@@ -10,19 +10,23 @@ It was intended for the data transfer between clients and the Layer8 server to b
 - [golangci-lint](https://golangci-lint.run/usage/install/#local-installation)
 
 ## Setup
-- Execute `make setup` to install the dependencies
+- Create a `.env` file in root directory and copy the contents of `.env.example` into it (or simply execute `cp .env.example .env`). Edit the values as needed.
+- Execute `make setup` to install dependencies
 
 ## Build
-- Execute `make build` to build the binaries
+- Execute `make build` to build the binaries (both WASM and the server binary)
 
 ## Run
-- Execute `make run` to run the server
+- Execute `make run` to run the server (this runs both the REST and gRPC servers)
+- To run only the REST server, execute `make run-rest`
+- And to run only the gRPC server, execute `make run-grpc`
 
 ## Testing
-- Execute `make test` to run the unit tests
+- Execute `make test` to run unit tests
+- An example client is provided in the `web` directory. To run it, execute `make example` and open the exposed URL in a browser
 
 ## Linting
-- Execute `make lint` to run the linter
+- To run the linter, execute `make lint`
 
 ## Formatting
 - Execute `make fmt` to run the formatter
