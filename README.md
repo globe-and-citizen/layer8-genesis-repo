@@ -27,14 +27,5 @@ It was intended for the data transfer between clients and the Layer8 server to b
 ## Formatting
 - Execute `make fmt` to run the formatter
 
-## Data Transfer Process
-1. The client generates a public and private key, then shares the public key to the server for key exchange
-2. The server generates a nonce and stores it in a database, then sends the nonce + its public key to the client
-3. The client generates a shared secret using the its private key, server's public key and the nonce, then encrypts the data using the shared secret
-4. The client sends the encrypted data to the server
-5. The server looks up the nonce in the database, then generates a shared secret using its private key, the client's public key and the nonce
-6. The server decrypts the data using the shared secret
-7. The server sends the decrypted data to the internet
-8. The server receives the response from the internet and encrypts it using the shared secret
-9. The server sends the encrypted response to the client
-10. The client decrypts the response using the shared secret
+## Flow Diagram
+![Flow Diagram](./assets/flow_diagram.jpg)
