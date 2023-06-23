@@ -32,4 +32,4 @@ It was intended for the data transfer between clients and the Layer8 server to b
 - Execute `make fmt` to run the formatter
 
 ## Flow Diagram
-![Flow Diagram](./assets/flow_diagram.jpg)
+![Flow Diagram](./assets/proxy_flow_diagram.jpg)
